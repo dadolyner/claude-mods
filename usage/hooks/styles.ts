@@ -28,8 +28,8 @@ export const hue: Record<Mode, string> = { warm: colors.warm, cold: colors.cold 
 export const font = "-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',sans-serif"
 
 export const sizes = {
-  /** A window's bar. */
-  barW: 64,
+  /** A window's bar at each band width: full, compact, tight. */
+  barW: { full: 64, compact: 48, tight: 32 },
   barH: 6,
   /** The cache pill, with Robo inside, and its padding either side. */
   pillH: 18,
@@ -45,14 +45,17 @@ export const css = `<style>.track{fill:#d1d0cb}@media (prefers-color-scheme: dar
 /** The band: one row on the app's own band, its pieces split by thin dividers. */
 export const band = {
   flexDirection: 'row',
-  flexWrap: 'nowrap',
+  // Pieces never shrink, so on a pane too narrow even for the tight layout whole
+  // pieces move to a second line instead of squeezing into each other.
+  flexWrap: 'wrap',
+  rowGap: 'xs',
   alignItems: 'center',
   columnGap: 'md',
   paddingX: 'sm',
 } as const satisfies Partial<BoxProps>
 
 /** One window or the cache: label, bar, figure, note. */
-export const meter = { flexDirection: 'row', alignItems: 'center', gap: 'xs' } as const satisfies Partial<BoxProps>
+export const meter = { flexDirection: 'row', alignItems: 'center', gap: 'xs', flexShrink: 0 } as const satisfies Partial<BoxProps>
 
 /** "5H", "7D". */
 export const label = { dimColor: true, size: 'footnote', weight: 'semibold' } as const satisfies Partial<TextProps>
@@ -72,8 +75,8 @@ const svg = (w: number, h: number, body: string): string =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${body}</svg>`
 
 /** A thin rounded bar, `ratio` of it filled in `color`. */
-export const barSvg = (ratio: number, color: string): string => {
-  const { barW: w, barH: h } = sizes
+export const barSvg = (ratio: number, color: string, w: number): string => {
+  const h = sizes.barH
   const fill = Math.round(w * Math.min(1, Math.max(0, ratio)))
   return svg(w, h, `${css}<rect class="track" width="${w}" height="${h}" rx="3"/><rect width="${fill}" height="${h}" rx="3" fill="${color}"/>`)
 }

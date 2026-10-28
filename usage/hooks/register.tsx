@@ -23,6 +23,9 @@ const TTL_MS = TTL_MIN * 60 * 1000
 const WIDE_AT = 78
 /** Under this the terminal's dot bars shrink and the cache gets its own row. */
 const TIGHT_AT = 42
+/** The drawn band: full from here ("left", reset times), compact above BAND_TIGHT_AT (no "left"), tight below (no reset times either). The USAGE tag shows at every width. */
+const BAND_FULL_AT = 120
+const BAND_TIGHT_AT = 85
 
 const windows = atom({ plugin: 'usage', key: 'windows' } as const, [] as Window[])
 const cache = atom({ plugin: 'usage', key: 'cache' } as const, null as CacheFacts | null)
@@ -162,8 +165,12 @@ export const register: Register = on => {
     }
     const cacheFigure = (v: CacheView) => (v.mode === 'cold' ? `${v.idle} idle` : `${v.minutesLeft}m left`)
 
-    // Drawing surfaces: one row, a thin divider between each window and the cache.
+    const columns = e.props.bodyColumns ?? e.viewport?.columns ?? 100
+
+    // Drawing surfaces: one row, a thin divider between each window and the cache,
+    // dropping detail as the band narrows so nothing squeezes into the next piece.
     if (Svg) {
+      const fit = columns >= BAND_FULL_AT ? 'full' : columns >= BAND_TIGHT_AT ? 'compact' : 'tight'
       const pill = view ? pillSvg(view.mode) : null
       const tag = tagSvg('USAGE', colors.tag)
       const divider = (key: string) => (
@@ -182,11 +189,11 @@ export const register: Register = on => {
               ...(i > 0 ? [divider(`d-${w.kind}`)] : []),
               <Box key={w.kind} {...meter}>
                 <Text {...label}>{p.name}</Text>
-                <Svg source={barSvg(p.left / 100, p.color)} alt={`${p.name} ${p.left}% left`} width={sizes.barW} height={sizes.barH} />
+                <Svg source={barSvg(p.left / 100, p.color, sizes.barW[fit])} alt={`${p.name} ${p.left}% left`} width={sizes.barW[fit]} height={sizes.barH} />
                 <Text {...figure} color={p.color}>
-                  {p.left}% left{p.isLow ? ' · LOW' : ''}
+                  {p.left}%{fit === 'full' ? ' left' : ''}{p.isLow ? ' · LOW' : ''}
                 </Text>
-                {p.reset ? <Text {...note}>· {p.reset}</Text> : null}
+                {p.reset && fit !== 'tight' ? <Text {...note}>· {p.reset}</Text> : null}
               </Box>,
             ]
           })}
@@ -195,7 +202,7 @@ export const register: Register = on => {
             <Box key="cache" {...meter}>
               <Svg source={pill.source} alt={`Cache ${WORD[view.mode].toLowerCase()}`} width={pill.w} height={sizes.pillH} isInteractive />
               <Text {...figure} color={hue[view.mode]}>
-                {cacheFigure(view)}
+                {fit === 'full' ? cacheFigure(view) : cacheFigure(view).replace(' left', '').replace(' idle', '')}
               </Text>
             </Box>
           ) : null}
@@ -205,7 +212,6 @@ export const register: Register = on => {
 
     // The terminal: dot bars in text. Wide: every window on one row. Narrow: each
     // window is a block of three lines so nothing wraps or clips.
-    const columns = e.props.bodyColumns ?? e.viewport?.columns ?? 100
     const kind = columns >= WIDE_AT ? 'wide' : columns >= TIGHT_AT ? 'stacked' : 'tight'
     const cells = kind === 'tight' ? TIGHT_CELLS : CELLS
     const dots = (left: number): { on: string; off: string } => {
