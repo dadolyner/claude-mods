@@ -1,0 +1,23 @@
+{
+  "name": "dadolyner",
+  "owner": {
+    "name": "David Škulj"
+  },
+  "plugins": [
+    {
+      "name": "usage",
+      "source": "./usage",
+      "description": "A band above the prompt: 5-hour and 7-day usage left and the prompt cache, styled like the agents cards."
+    },
+    {
+      "name": "agents",
+      "source": "./agents",
+      "description": "A progress bar for /savvy-flow and a panel of running subagents with role crabs, progress, time, tokens and cost."
+    },
+    {
+      "name": "session-hub",
+      "source": "./session-hub",
+      "description": "Tabbed session sidebar: overview, context, changes, agents, tools & MCP, config & memory."
+    }
+  ]
+}

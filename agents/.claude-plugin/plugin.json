@@ -1,0 +1,23 @@
+{
+  "name": "agents",
+  "version": "3.1.0",
+  "description": "A progress bar above the prompt for /savvy-flow, and a panel of running subagents: role crab, task, progress, current step, time, tokens and cost.",
+  "author": {
+    "name": "David Škulj"
+  },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "autoOpen": {
+      "type": "string",
+      "title": "Open the agents panel",
+      "description": "savvy: when a savvy-flow worker starts or a plan is reported; any: also whenever any subagent starts and the panel is closed; always: as any, and open at the start of every session",
+      "default": "savvy",
+      "options": [
+        "savvy",
+        "any",
+        "always"
+      ]
+    }
+  },
+  "license": "MIT"
+}

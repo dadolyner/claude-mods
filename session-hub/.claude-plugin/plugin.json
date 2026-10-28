@@ -1,0 +1,16 @@
+{
+  "name": "session-hub",
+  "version": "0.3.0",
+  "description": "A tabbed session sidebar: overview, context, changes, agents, tools & MCP, config & memory.",
+  "author": { "name": "David Škulj" },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "autoOpen": {
+      "type": "string",
+      "title": "Open the hub at session start",
+      "description": "on: open it beside the chat when a session starts; off: only /hub opens it",
+      "default": "on",
+      "options": ["on", "off"]
+    }
+  }
+}

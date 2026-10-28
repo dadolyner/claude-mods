@@ -1,0 +1,10 @@
+# Written by Claude Code each time it loads a mod; regenerated, never edited.
+.claude-plugin/types/
+**/.claude-plugin/types/
+.orphaned_at
+**/.orphaned_at
+
+# Screenshots of the original ribbon band; the usage band no longer looks like them.
+usage/assets/
+
+.DS_Store
