@@ -12,8 +12,8 @@ import { band, barSvg, colors, divider as dividerStyle, figure, hue, label, mete
 
 const CELLS = 10
 const TIGHT_CELLS = 6
-/** A window under this percent left shows LOW, in red. */
-const LOW_AT = 15
+/** A window at or past this percent used turns red and says HIGH. */
+const HIGH_AT = 85
 /** How often the band redraws, so the countdown and the warm-to-cold flip stay current. */
 const TICK_MS = 30_000
 /** The prompt cache lives an hour after the last request that read or wrote it. */
@@ -23,7 +23,7 @@ const TTL_MS = TTL_MIN * 60 * 1000
 const WIDE_AT = 78
 /** Under this the terminal's dot bars shrink and the cache gets its own row. */
 const TIGHT_AT = 42
-/** The drawn band: full from here ("left", reset times), compact above BAND_TIGHT_AT (no "left"), tight below (no reset times either). The USAGE tag shows at every width. */
+/** The drawn band: full from here ("used", reset times), compact above BAND_TIGHT_AT (no "used"), tight below (no reset times either). The USAGE tag shows at every width. */
 const BAND_FULL_AT = 120
 const BAND_TIGHT_AT = 85
 
@@ -153,12 +153,12 @@ export const register: Register = on => {
     const view = viewOf(await read($, cache), now)
 
     const parts = (w: Window) => {
-      const left = Math.max(0, Math.round((100 - w.percentUsed) * 10) / 10)
-      const isLow = left < LOW_AT
+      const used = Math.min(100, Math.max(0, Math.round(w.percentUsed * 10) / 10))
+      const isHigh = used >= HIGH_AT
       return {
-        left,
-        isLow,
-        color: isLow ? colors.low : (WINDOW_COLOR[w.kind] ?? colors.text),
+        used,
+        isHigh,
+        color: isHigh ? colors.low : (WINDOW_COLOR[w.kind] ?? colors.text),
         name: NAMES[w.kind] ?? w.kind.toUpperCase(),
         reset: fmtReset(w.resetsAt, now),
       }
@@ -189,9 +189,9 @@ export const register: Register = on => {
               ...(i > 0 ? [divider(`d-${w.kind}`)] : []),
               <Box key={w.kind} {...meter}>
                 <Text {...label}>{p.name}</Text>
-                <Svg source={barSvg(p.left / 100, p.color, sizes.barW[fit])} alt={`${p.name} ${p.left}% left`} width={sizes.barW[fit]} height={sizes.barH} />
+                <Svg source={barSvg(p.used / 100, p.color, sizes.barW[fit])} alt={`${p.name} ${p.used}% used`} width={sizes.barW[fit]} height={sizes.barH} />
                 <Text {...figure} color={p.color}>
-                  {p.left}%{fit === 'full' ? ' left' : ''}{p.isLow ? ' · LOW' : ''}
+                  {p.used}%{fit === 'full' ? ' used' : ''}{p.isHigh ? ' · HIGH' : ''}
                 </Text>
                 {p.reset && fit !== 'tight' ? <Text {...note}>· {p.reset}</Text> : null}
               </Box>,
@@ -214,20 +214,20 @@ export const register: Register = on => {
     // window is a block of three lines so nothing wraps or clips.
     const kind = columns >= WIDE_AT ? 'wide' : columns >= TIGHT_AT ? 'stacked' : 'tight'
     const cells = kind === 'tight' ? TIGHT_CELLS : CELLS
-    const dots = (left: number): { on: string; off: string } => {
-      const n = Math.max(0, Math.min(cells, Math.round((left / 100) * cells)))
+    const dots = (used: number): { on: string; off: string } => {
+      const n = Math.max(0, Math.min(cells, Math.round((used / 100) * cells)))
       return { on: '●'.repeat(n), off: '·'.repeat(cells - n) }
     }
 
     const wide = (w: Window) => {
       const p = parts(w)
-      const d = dots(p.left)
+      const d = dots(p.used)
       return (
         <Box key={w.kind} flexDirection="row" flexShrink={0} marginRight={3}>
           <Text color={colors.muted} bold>{p.name} </Text>
           <Text color={p.color}>{d.on}</Text>
           <Text color={colors.empty}>{d.off}</Text>
-          <Text color={p.color} bold> {p.left}% left{p.isLow ? ' LOW' : ''}</Text>
+          <Text color={p.color} bold> {p.used}% used{p.isHigh ? ' HIGH' : ''}</Text>
           {p.reset ? <Text color={colors.muted}> · {p.reset}</Text> : null}
         </Box>
       )
@@ -235,7 +235,7 @@ export const register: Register = on => {
 
     const stacked = (w: Window) => {
       const p = parts(w)
-      const d = dots(p.left)
+      const d = dots(p.used)
       return (
         <Box key={w.kind} flexDirection="column" flexShrink={0} marginRight={3}>
           <Box flexDirection="row">
@@ -243,7 +243,7 @@ export const register: Register = on => {
             <Text color={p.color}>{d.on}</Text>
             <Text color={colors.empty}>{d.off}</Text>
           </Box>
-          <Text color={p.color} bold>{p.left}% left{p.isLow ? ' LOW' : ''}</Text>
+          <Text color={p.color} bold>{p.used}% used{p.isHigh ? ' HIGH' : ''}</Text>
           {p.reset ? <Text color={colors.muted}>resets {p.reset}</Text> : null}
         </Box>
       )

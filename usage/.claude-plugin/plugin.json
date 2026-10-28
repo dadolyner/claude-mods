@@ -1,6 +1,6 @@
 {
   "name": "usage",
-  "version": "3.2.1",
+  "version": "3.3.0",
   "description": "A band above the prompt: how much of your 5-hour and 7-day usage is left, when each resets, and the prompt cache's state.",
   "author": {
     "name": "David Škulj"

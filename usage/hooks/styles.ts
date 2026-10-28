@@ -11,7 +11,7 @@ export const colors = {
   sevenDay: '#ff6b1a',
   /** The USAGE tag: neutral, so it reads as the row's name, not a reading. */
   tag: '#8e8e93',
-  /** A window under the low line. */
+  /** A window past the high line. */
   low: '#D0453F',
   /** The prompt cache's two states, desaturated to sit beside the windows' colours. */
   warm: '#cc6363',
@@ -60,7 +60,7 @@ export const meter = { flexDirection: 'row', alignItems: 'center', gap: 'xs', fl
 /** "5H", "7D". */
 export const label = { dimColor: true, size: 'footnote', weight: 'semibold' } as const satisfies Partial<TextProps>
 
-/** "85% left", "57m left": in the meter's colour. */
+/** "15% used", "57m left": in the meter's colour. */
 export const figure = { size: 'footnote', weight: 'semibold', tabular: true } as const satisfies Partial<TextProps>
 
 /** The line between the 5-hour window, the 7-day window and the cache: a dim box-drawing bar, so it follows the theme. */
