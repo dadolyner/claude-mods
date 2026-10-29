@@ -6,13 +6,12 @@ import type { BoxProps, TextProps } from 'claude-code'
 export type Mode = 'warm' | 'cold'
 
 export const colors = {
-  /** Each window's colour: 5-hour yellow, 7-day orange. */
-  fiveHour: '#f5a623',
-  sevenDay: '#ff6b1a',
   /** The USAGE tag: neutral, so it reads as the row's name, not a reading. */
   tag: '#8e8e93',
-  /** A window past the high line. */
-  low: '#D0453F',
+  /** A window's bar: calm blue, yellow from 80% used, red from 90%. */
+  normal: '#3b7be8',
+  warn: '#f5a623',
+  danger: '#D0453F',
   /** The prompt cache's two states, desaturated to sit beside the windows' colours. */
   warm: '#cc6363',
   cold: '#6aaabd',

@@ -12,8 +12,10 @@ import { band, barSvg, colors, divider as dividerStyle, figure, hue, label, mete
 
 const CELLS = 10
 const TIGHT_CELLS = 6
-/** A window at or past this percent used turns red and says HIGH. */
-const HIGH_AT = 85
+/** From this percent used a window turns red and says HIGH. */
+const HIGH_AT = 90
+/** From this percent used a window turns yellow. */
+const WARN_AT = 80
 /** How often the band redraws, so the countdown and the warm-to-cold flip stay current. */
 const TICK_MS = 30_000
 /** The prompt cache lives an hour after the last request that read or wrote it. */
@@ -32,7 +34,6 @@ const cache = atom({ plugin: 'usage', key: 'cache' } as const, null as CacheFact
 
 const NAMES: Record<string, string> = { seven_day: '7D', five_hour: '5H', spend_limit: 'SPEND' }
 const ORDER: Record<string, number> = { five_hour: 0, seven_day: 1 }
-const WINDOW_COLOR: Record<string, string> = { seven_day: colors.sevenDay, five_hour: colors.fiveHour }
 const WORD: Record<Mode, string> = { warm: 'WARM', cold: 'COLD' }
 
 /** 18m, 2h 5m, 3d 9h. */
@@ -155,10 +156,12 @@ export const register: Register = on => {
     const parts = (w: Window) => {
       const used = Math.min(100, Math.max(0, Math.round(w.percentUsed * 10) / 10))
       const isHigh = used >= HIGH_AT
+      const isWarn = used >= WARN_AT
       return {
         used,
         isHigh,
-        color: isHigh ? colors.low : (WINDOW_COLOR[w.kind] ?? colors.text),
+        isWarn,
+        color: isHigh ? colors.danger : isWarn ? colors.warn : colors.normal,
         name: NAMES[w.kind] ?? w.kind.toUpperCase(),
         reset: fmtReset(w.resetsAt, now),
       }
@@ -190,7 +193,7 @@ export const register: Register = on => {
               <Box key={w.kind} {...meter}>
                 <Text {...label}>{p.name}</Text>
                 <Svg source={barSvg(p.used / 100, p.color, sizes.barW[fit])} alt={`${p.name} ${p.used}% used`} width={sizes.barW[fit]} height={sizes.barH} />
-                <Text {...figure} color={p.color}>
+                <Text {...figure} {...(p.isWarn ? { color: p.color } : { dimColor: true })}>
                   {p.used}%{fit === 'full' ? ' used' : ''}{p.isHigh ? ' · HIGH' : ''}
                 </Text>
                 {p.reset && fit !== 'tight' ? <Text {...note}>· {p.reset}</Text> : null}
